@@ -4,10 +4,12 @@
 #include <BLEAdvertisedDevice.h>
 #include <BLEDevice.h>
 #include <BLEScan.h>
+#include <RingBufCPP.h>
 #include <arpa/inet.h>
 
 // globals:
 float probeValues[NUMBER_OF_PROBES] = {};
+float probeHistory[NUMBER_OF_PROBES][HISTORY_LENGTH] = {};
 byte bteState = BT_STATE_NA;
 
 static BLEAddress *pServerAddress;
@@ -51,6 +53,20 @@ class MyClientCallback : public BLEClientCallbacks {
   }
 };
 
+unsigned long lastHistoryUpdate = 0;
+
+RingBufCPP<float, 600> buf[NUMBER_OF_PROBES];
+
+void historyKeeperLoop() {
+  unsigned long seconds = millis() / 1000;
+  if ((lastHistoryUpdate + 10) <= seconds) {
+    lastHistoryUpdate = seconds;
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
+      buf[i].add(probeValues[i]);
+    }
+  }
+}
+
 // init the ESP32 as a BLE device and set some scan parameters
 void bleInit() {
   // Rest all probes to not connected
@@ -89,6 +105,12 @@ static void notifyCallback(
       probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
     } else {
       probeValues[i] = data->probeData[i] / 10.0f;
+      // Filter bad values
+      if (probeValues[i] > 600) {  // 572 is max probes can handle
+        probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
+      } else if (probeValues[i] < 1) {  // 1 is min probes can handle
+        probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
+      }
     }
   }
 }
@@ -131,9 +153,15 @@ void bteLoop() {
   } else if (bteState == BT_STATE_NA) {
     bleInit();
   }
+  historyKeeperLoop;
 }
 
 void bteMock() {
+  for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
+    for (int j = 0; j < HISTORY_LENGTH; j += 1) {
+      buf[i].add(j / 4.0);
+    }
+  }
   if (bteState == BT_STATE_NA) {
     bteState = BT_STATE_CONNECTED;
     for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
@@ -143,4 +171,5 @@ void bteMock() {
   for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
     probeValues[i] += random(1, 10) / 10.0;
   }
+  historyKeeperLoop();
 }
