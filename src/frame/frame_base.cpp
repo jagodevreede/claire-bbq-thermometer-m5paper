@@ -1,5 +1,6 @@
 #include "frame_base.h"
 #include "../epdgui/epdgui.h"
+#include "bte.h"
 
 Frame_Base::Frame_Base()
 {
@@ -27,10 +28,11 @@ Frame_Base::~Frame_Base()
 
 void Frame_Base::StatusBar(m5epd_update_mode_t mode)
 {
-    if ((millis() - _time) < _next_update_time)
+    if ((millis() - _time) < _next_update_time && lastKnownBtState == bteState)
     {
         return;
     }
+    lastKnownBtState = bteState;
     char buf[20];
     _bar->fillCanvas(0);
     _bar->drawFastHLine(0, 43, 540, 15);
@@ -63,15 +65,29 @@ void Frame_Base::StatusBar(m5epd_update_mode_t mode)
     sprintf(buf, "%d%%", (int)(battery * 100));
     _bar->fillRect(498 + 3, 8 + 10, px, 13, 15);
 
-    // // Time
-    rtc_time_t time_struct;
-    // rtc_date_t date_struct;
-    M5.RTC.getTime(&time_struct);
-    // M5.RTC.getDate(&date_struct);
-    // sprintf(buf, "%2d:%02d", time_struct.hour, time_struct.min);
-    // _bar->setTextDatum(CC_DATUM);
-    // _bar->drawString(buf, 270, 27);
+    // bt connection status
+    switch (bteState)
+    {
+    case BT_STATE_CONNECTING:
+        sprintf(buf, "Connecting...");
+        break;
+    case BT_STATE_SCANNING:
+        sprintf(buf, "Scanning...");
+        break;
+    case BT_STATE_CONNECTED:
+        sprintf(buf, "Connected");
+        break;
+    default:
+        sprintf(buf, "Not connected");
+    }
+
+    _bar->setTextDatum(CC_DATUM);
+    _bar->drawString(buf, 270, 27);
     _bar->pushCanvas(0, 0, mode);
+
+    // Time
+    rtc_time_t time_struct;
+    M5.RTC.getTime(&time_struct);
 
     _time = millis();
     _next_update_time = (60 - time_struct.sec) * 1000;

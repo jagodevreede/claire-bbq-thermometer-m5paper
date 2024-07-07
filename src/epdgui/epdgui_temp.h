@@ -25,6 +25,7 @@ private:
 
 public:
     M5EPD_Canvas *_CanvasNormal = NULL;
+    M5EPD_Canvas *_CanvasEmpty = NULL;
 };
 
 #endif //__EPDGUI_TEMP_H

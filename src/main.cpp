@@ -16,6 +16,7 @@ void loop()
 {
     EPDGUI_MainLoop();
     // bteLoop();
+    bteMock();
 
     delay(2000);
 }

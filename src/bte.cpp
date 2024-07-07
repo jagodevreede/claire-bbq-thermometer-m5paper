@@ -6,6 +6,10 @@
 #include <BLEAdvertisedDevice.h>
 #include <arpa/inet.h>
 
+// globals:
+float probeValues[NUMBER_OF_PROBES] = {};
+byte bteState = BT_STATE_NA;
+
 static BLEAddress *pServerAddress;
 BLEClient *mClient;
 
@@ -29,8 +33,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
                 advertisedDevice.getScan()->stop();
                 pServerAddress = new BLEAddress(advertisedDevice.getAddress());
                 serviceUUID = advertisedDevice.getServiceUUID();
-                bteConnecting = true;
-                bteScanning = false;
+                bteState = BT_STATE_CONNECTING;
                 log_i("Found the thermometer with service UUID: %s", serviceUUID.toString().c_str());
             }
         }
@@ -43,21 +46,26 @@ class MyClientCallback : public BLEClientCallbacks
     void onConnect(BLEClient *pclient)
     {
         log_i("BT connected");
-        bteConnected = true;
+        bteState = BT_STATE_CONNECTED;
     }
 
     void onDisconnect(BLEClient *pclient)
     {
         log_i("BT disconnected");
-        bteConnected = false;
+        bteState = BT_STATE_NA;
     }
 };
 
 // init the ESP32 as a BLE device and set some scan parameters
 void bleInit()
 {
+    // Rest all probes to not connected
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
+    {
+        probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
+    }
     log_d("Starting ble scan");
-    bteScanning = true;
+    bteState = BT_STATE_SCANNING;
     BLEDevice::init("ESP 32 Grill BT5.0");
     BLEScan *bleScan = BLEDevice::getScan();
     bleScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
@@ -90,7 +98,6 @@ static void notifyCallback(
 
     for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
     {
-
         if (data->probeData[i] == PROBE_NOT_CONNECTED_VALUE)
         {
             probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
@@ -114,12 +121,16 @@ bool connectToBLEServer(BLEAddress pAddress)
 
     if (pRemoteService == nullptr)
     {
+        log_w("Disconnecting as we can't get service");
+        mClient->disconnect();
         return false;
     }
 
     BLERemoteCharacteristic *tempatureCharacteristic = pRemoteService->getCharacteristic(tempUUID);
     if (tempatureCharacteristic == nullptr)
     {
+        log_w("Disconnecting as we can't get tempature characteristic");
+        mClient->disconnect();
         return false;
     }
 
@@ -133,13 +144,28 @@ void bteLoop()
 {
     // doConnect is only true after the BLE scan finds a device
     // rights afterwards it is false again - also if the scan isn't successfully
-    if (bteConnecting == true)
+    if (bteState == BT_STATE_CONNECTING)
     {
-        bteConnected = (connectToBLEServer(*pServerAddress)) ? true : false;
-        bteConnecting = false;
+        bteState = (connectToBLEServer(*pServerAddress)) ? BT_STATE_CONNECTED : BT_STATE_NA;
     }
-    else if (!bteConnected && !bteScanning && !bteConnecting)
+    else if (bteState == BT_STATE_NA)
     {
         bleInit();
+    }
+}
+
+void bteMock()
+{
+    if (bteState == BT_STATE_NA)
+    {
+        bteState = BT_STATE_CONNECTED;
+        for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
+        {
+            probeValues[i] = 42.9;
+        }
+    }
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
+    {
+        probeValues[i] += random(1, 10) / 10.0;
     }
 }

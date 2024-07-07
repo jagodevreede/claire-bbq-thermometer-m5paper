@@ -7,8 +7,6 @@
 
 M5EPD_Canvas _initcanvas(&M5.EPD);
 
-QueueHandle_t xQueue_Info = xQueueCreate(20, sizeof(uint32_t));
-
 void SysInit_Start(void)
 {
     bool ret = false;

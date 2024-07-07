@@ -46,6 +46,7 @@ private:
     uint32_t _next_update_time;
     uint32_t _time;
     M5EPD_Canvas *_bar;
+    byte lastKnownBtState = 0;
 };
 
 #endif
