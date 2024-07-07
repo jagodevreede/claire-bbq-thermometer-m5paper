@@ -38,7 +38,9 @@ void EPDGUI_Temp::Draw(M5EPD_Canvas *canvas) {
 }
 
 void EPDGUI_Temp::Bind(int16_t event, void (*func_cb)(epdgui_args_vector_t &)) {
-  // Nothing to bind
+  if (event == EVENT_PRESSED || event == EVENT_RELEASED) {
+    _pressed_cb = func_cb;
+  }
 }
 
 void EPDGUI_Temp::setLabel(String label) {
@@ -51,14 +53,20 @@ void EPDGUI_Temp::setLabel(String label) {
   this->_CanvasNormal->drawString(_label, _w / 2, _h / 2 + 3);
 }
 
-void EPDGUI_Temp::AddArgs(int16_t event, uint16_t n, void *arg) {
-  if (event == EVENT_PRESSED) {
-    if (_pressed_cb_args.size() > n) {
-      _pressed_cb_args[n] = arg;
-    } else {
-      _pressed_cb_args.push_back(arg);
+void EPDGUI_Temp::UpdateState(int16_t x, int16_t y) {
+   if (_ishide) {
+    return;
+  }
+
+  bool is_in_area = isInBox(x, y);
+
+  if (is_in_area) {
+    if (_state == EVENT_NONE) {
+      _state = EVENT_PRESSED;
+      Draw();
+      if (_pressed_cb != NULL) {
+        _pressed_cb(_pressed_cb_args);
+      }
     }
   }
 }
-
-void EPDGUI_Temp::UpdateState(int16_t x, int16_t y) {}

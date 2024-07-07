@@ -31,5 +31,5 @@ void loop() {
   if (M5.BtnP.isPressed()) {
     shutdown();
   }
-  delay(2000);
+  delay(250);
 }
