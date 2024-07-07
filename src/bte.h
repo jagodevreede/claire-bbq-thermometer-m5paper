@@ -17,4 +17,4 @@ extern byte bteState;
 void bteLoop();
 void bteMock();
 
-#endif //__BTE_H
+#endif  //__BTE_H

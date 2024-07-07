@@ -1,13 +1,13 @@
 #ifndef __EPDGUI_H
 #define __EPDGUI_H
 
+#include "../frame/frame_base.h"
 #include "epdgui_base.h"
 #include "epdgui_button.h"
+#include "epdgui_mutexswitch.h"
 #include "epdgui_switch.h"
 #include "epdgui_temp.h"
 #include "epdgui_textbox.h"
-#include "epdgui_mutexswitch.h"
-#include "../frame/frame_base.h"
 
 void EPDGUI_AddObject(EPDGUI_Base* object);
 void EPDGUI_Draw(m5epd_update_mode_t mode = UPDATE_MODE_GC16);
