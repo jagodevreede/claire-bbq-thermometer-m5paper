@@ -15,8 +15,8 @@ void setup()
 void loop()
 {
     EPDGUI_MainLoop();
-    // bteLoop();
-    bteMock();
+    bteLoop();
+    // bteMock();
 
     delay(2000);
 }

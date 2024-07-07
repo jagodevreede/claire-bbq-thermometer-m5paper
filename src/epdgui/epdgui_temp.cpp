@@ -59,8 +59,8 @@ void EPDGUI_Temp::setLabel(String label)
 
     this->_CanvasNormal->fillCanvas(0);
     this->_CanvasNormal->drawRect(0, 0, _w, _h, 15);
-    this->_CanvasNormal->setTextSize(26);
-    this->_CanvasNormal->setTextDatum(TC_DATUM);
+    this->_CanvasNormal->setTextSize(72);
+    this->_CanvasNormal->setTextDatum(CC_DATUM);
     this->_CanvasNormal->drawString(_label, _w / 2, _h / 2 + 3);
 }
 

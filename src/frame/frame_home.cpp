@@ -9,6 +9,9 @@ Frame_Home::Frame_Home(void) : Frame_Base()
     _frame_name = "Frame_Home";
     _frame_id = 0;
 
+    createFontSizes();
+
+    //  _sw_light1 = new EPDGUI_Switch(2, 20, 44 + 72, 228, 228);
     _tp_probe[0] = new EPDGUI_Temp("_tp_probe1", 20, 44 + 72, 228, 228);
     _tp_probe[1] = new EPDGUI_Temp("_tp_probe2", 288, 44 + 72, 228, 228);
     _tp_probe[2] = new EPDGUI_Temp("_tp_probe3", 20, 324 + 72, 228, 228);
@@ -21,6 +24,12 @@ Frame_Home::Frame_Home(void) : Frame_Base()
     {
         _tp_probe[i]->SetHide(true);
     }
+}
+
+void Frame_Home::createFontSizes()
+{
+    M5EPD_Canvas canvas_temp(&M5.EPD);
+    canvas_temp.createRender(72);
 }
 
 Frame_Home::~Frame_Home(void)
