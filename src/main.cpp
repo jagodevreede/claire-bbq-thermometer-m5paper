@@ -4,11 +4,15 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 
+#define NUMBER_OF_PROBES 6
+#define PROBE_NOT_CONNECTED_VALUE 65535
+
+static float probeValues[NUMBER_OF_PROBES] = {};
+
 M5EPD_Canvas canvas(&M5.EPD);
 
-int point[2][2];
 static BLEAddress *pServerAddress;
-BLEClient *pClient;
+BLEClient *mClient;
 BLEScan *pBLEScan;
 
 static String btDeviceName = "Grill BT5.0";
@@ -16,32 +20,25 @@ static boolean doConnect = false;
 static boolean connected = false;
 static BLEUUID serviceUUID;
 
-static BLEUUID tempUUID("0000ffb1-0000-1000-8000-00805f9b34fb");
-static BLEUUID notUUID("0000ffb2-0000-1000-8000-00805f9b34fb");
-
-static BLERemoteCharacteristic *pTempCharacteristic;
-static BLERemoteCharacteristic *pNotCharacteristic;
+static BLEUUID tempUUID("0000ffb2-0000-1000-8000-00805f9b34fb");
 
 // BLE scan results
 // as we don't connect directly to the mac address of the thermometer
 // we have to scan for the service UUID and connect to the first device which equals the inkbird UUID
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 {
-
     void onResult(BLEAdvertisedDevice advertisedDevice)
     {
-
         if (advertisedDevice.haveName())
         {
             log_i("%s", advertisedDevice.getName().c_str());
             if (btDeviceName.equals(advertisedDevice.getName().c_str()))
             {
-                log_i("Found the thermometer");
                 advertisedDevice.getScan()->stop();
                 pServerAddress = new BLEAddress(advertisedDevice.getAddress());
                 serviceUUID = advertisedDevice.getServiceUUID();
                 doConnect = true;
-                log_i("Service UUID: %s", serviceUUID.toString().c_str());
+                log_i("Found the thermometer with service UUID: %s", serviceUUID.toString().c_str());
             }
         }
     }
@@ -50,7 +47,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks
 // generic BLE callbacks. just used to re-/set the connected state
 class MyClientCallback : public BLEClientCallbacks
 {
-
     void onConnect(BLEClient *pclient)
     {
         log_i("BT connected");
@@ -78,131 +74,63 @@ void bleInit()
 struct ProbeData
 {
     uint16_t headerInformation;
-    uint16_t probeData[6];
+    uint16_t probeData[NUMBER_OF_PROBES];
 };
 
-void printBinaryValue(uint8_t *pData)
+void fixUpIndianFormat(ProbeData *data)
 {
-    if (pData)
-    {                           // Check if the pointer is not null
-        uint8_t value = *pData; // Dereference the pointer to get the value
-        for (int i = 7; i >= 0; --i)
-        {                                   // Loop through each bit
-            Serial.print((value >> i) & 1); // Print each bit
-        }
-        Serial.println(); // New line after printing the binary value
-    }
-    else
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
     {
-        Serial.println("Pointer is null.");
+        data->probeData[i] = ntohs(data->probeData[i]);
     }
 }
 
 static void notifyCallback(
     BLERemoteCharacteristic *pBLERemoteCharacteristic,
     uint8_t *pData,
-    size_t length,
+    size_t length, // length is always 15 there are 6 probes...
     bool isNotify)
 {
-
     ProbeData *data = reinterpret_cast<ProbeData *>(pData);
-    for (int i = 0; i < 6; i += 1)
-    {
-        data->probeData[i] = ntohs(data->probeData[i]);
-    }
+    fixUpIndianFormat(data);
 
-    for (int i = 0; i < 6; i += 1)
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1)
     {
-        log_i("ntohs %d %d", i, ntohs(data->probeData[i]));
+
+        if (data->probeData[i] == PROBE_NOT_CONNECTED_VALUE)
+        {
+            probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
+        }
+        else
+        {
+            probeValues[i] = data->probeData[i] / 10.0f;
+        }
     }
 }
 
 // connecting to the thermometer
 bool connectToBLEServer(BLEAddress pAddress)
 {
+    mClient = BLEDevice::createClient();
 
-    pClient = BLEDevice::createClient();
+    mClient->setClientCallbacks(new MyClientCallback());
+    mClient->connect(pAddress);
 
-    pClient->setClientCallbacks(new MyClientCallback());
-    pClient->connect(pAddress);
-
-    BLERemoteService *pRemoteService = pClient->getService(serviceUUID);
+    BLERemoteService *pRemoteService = mClient->getService(serviceUUID);
 
     if (pRemoteService == nullptr)
     {
         return false;
     }
 
-    // std::map<std::string, BLERemoteCharacteristic*>* characteristics = pRemoteService->getCharacteristics();
-    // for (const auto& pair : *characteristics) {
-    //     std::string key = pair.first;
-    //     BLERemoteCharacteristic* value = pair.second;
-    //     // Do something with key and value
-    //     log_i("%s %d", key.c_str(), value->getHandle());
-    // }
-
-    // std::map<std::string, BLERemoteCharacteristic *>::iterator it;
-    // for (it = pRemoteService->getCharacteristics()->begin(); it != pRemoteService->getCharacteristics()->end(); it++)
-    // {
-    //     log_i("Characteristic %s: %s", it->first.c_str(), it->second->toString().c_str());
-    // }
-
-    // pTempCharacteristic = pRemoteService->getCharacteristic(tempUUID);
-    // if (pTempCharacteristic == nullptr) {
-    //     return false;
-    // }
-
-    // float value = pTempCharacteristic->readFloat();
-    // log_i("Got: %f", value);
-
-    pNotCharacteristic = pRemoteService->getCharacteristic(notUUID);
-    if (pNotCharacteristic == nullptr)
+    BLERemoteCharacteristic *tempatureCharacteristic = pRemoteService->getCharacteristic(tempUUID);
+    if (tempatureCharacteristic == nullptr)
     {
         return false;
     }
 
-    pNotCharacteristic->registerForNotify(notifyCallback);
-    log_i("Registerd notify");
-
-    //[  6416][I][main.cpp:86] connectToBLEServer(): 0000ffb1-0000-1000-8000-00805f9b34fb
-    //[  6421][I][main.cpp:86] connectToBLEServer(): 0000ffb2-0000-1000-8000-00805f9b34fb
-
-    //    pAuthCharacteristic = pRemoteService->getCharacteristic(characteristicAuthUUID);
-
-    // if (pAuthCharacteristic == nullptr) {
-    //     return false;
-    // }
-
-    // pAuthCharacteristic->writeValue((uint8_t *)enableAccess, sizeof(enableAccess), true);
-
-    // pRemoteCharacteristic = pRemoteService->getCharacteristic(characteristicRealTimeDataUUID);
-
-    // if (pRemoteCharacteristic == nullptr) {
-    //     return false;
-    // }
-
-    // pSettingsCharacteristic = pRemoteService->getCharacteristic(characteristicSettingsUUID);
-
-    // if (pSettingsCharacteristic == nullptr) {
-    //     return false;
-    // }
-
-    // pSettingsCharacteristic->writeValue((uint8_t *)enableRealTimeData, sizeof(enableRealTimeData), true);
-    // pSettingsCharacteristic->writeValue((uint8_t *)enableUnitCelsius, sizeof(enableUnitCelsius), true);
-
-    // pRemoteCharacteristic->registerForNotify(notifyCallback);
-
-    // pSettingsResultsCharacteristic = pRemoteService->getCharacteristic(characteristicSettingsResultsUUID);
-
-    // if (pSettingsResultsCharacteristic == nullptr) {
-    //     return false;
-    // }
-
-    // pSettingsResultsCharacteristic->registerForNotify(notifyResultsCallback);
-
-    // // get the battery data on connection once
-    // // in the loop() we will request it just every ~60 seconds
-    // getBatteryState();
+    tempatureCharacteristic->registerForNotify(notifyCallback);
+    log_i("Registerd temprature notification");
 
     return true;
 }
@@ -227,8 +155,6 @@ void loop()
     // rights afterwards it is false again - also if the scan isn't successfully
     if (doConnect == true)
     {
-
-        // true if the ESP is connected
         connected = (connectToBLEServer(*pServerAddress)) ? true : false;
         doConnect = false;
     }
