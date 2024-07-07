@@ -25,11 +25,21 @@ EPDGUI_Temp::~EPDGUI_Temp()
 
 void EPDGUI_Temp::Draw(m5epd_update_mode_t mode)
 {
+    if (_ishide)
+    {
+        return;
+    }
+    log_i("draw with mode");
     this->_CanvasNormal->pushCanvas(_x, _y, mode);
 }
 
 void EPDGUI_Temp::Draw(M5EPD_Canvas *canvas)
 {
+    if (_ishide)
+    {
+        return;
+    }
+    log_i("draw with canvas");
     _CanvasNormal->pushToCanvas(_x, _y, canvas);
 }
 

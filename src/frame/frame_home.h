@@ -11,20 +11,14 @@ public:
     ~Frame_Home();
     int init(epdgui_args_vector_t &args);
     int run();
-    void InitSwitch(EPDGUI_Switch *sw, String title, String subtitle,
-                    const uint8_t *img1, const uint8_t *img2);
 
 private:
-    EPDGUI_Temp *_sw_light1;
-    EPDGUI_Switch *_sw_light2;
-    EPDGUI_Switch *_sw_socket1;
-    EPDGUI_Switch *_sw_socket2;
-    EPDGUI_Switch *_sw_air_1;
-    EPDGUI_Switch *_sw_air_2;
-    EPDGUI_Button *_key_air_1_plus;
-    EPDGUI_Button *_key_air_1_minus;
-    EPDGUI_Button *_key_air_2_plus;
-    EPDGUI_Button *_key_air_2_minus;
+    EPDGUI_Temp *_tp_probe1;
+    EPDGUI_Temp *_tp_probe2;
+    EPDGUI_Temp *_tp_probe3;
+    EPDGUI_Temp *_tp_probe4;
+    EPDGUI_Temp *_tp_probe5;
+    EPDGUI_Temp *_tp_probe6;
 };
 
 #endif //_FRAME_HOME_H_
