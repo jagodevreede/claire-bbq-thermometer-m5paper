@@ -1,0 +1,33 @@
+ *  Executing task: platformio device monitor --environment m5stack-fire
+
+--- Terminal on /dev/cu.usbserial-56230356611 | 115200 8-N-1
+--- Available filters and text transformations: colorize, debug, default, direct, esp32_exception_decoder, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at https://bit.ly/pio-monitor-filters
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+[  2626][D][M5EPD_Driver.cpp:70] begin(): Init SUCCESS.
+[  2626][D][GT911.cpp:35] begin(): GT911: Initialization
+OK
+[  3362][D][font_render.c:71] font_cache_init(): Chace use 51104 bytes
+[  3370][D][epdgui.cpp:131] EPDGUI_MainLoop(): Run Frame_Home
+Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled.
+
+Core  1 register dump:
+PC      : 0x400d33df  PS      : 0x00060c30  A0      : 0x800d2d2d  A1      : 0x3ffc5780
+A2      : 0x00000000  A3      : 0x00000000  A4      : 0x00000008  A5      : 0x00000008
+A6      : 0x0000ffff  A7      : 0x00000001  A8      : 0x800d3cf7  A9      : 0x3ffc5750
+A10     : 0x3ffc16b8  A11     : 0x00000000  A12     : 0x3ffc16b8  A13     : 0x3ffc1734
+A14     : 0x00000bb8  A15     : 0x3ffc13a0  SAR     : 0x00000011  EXCCAUSE: 0x0000001c
+EXCVADDR: 0x000000e0  LBEG    : 0x40085635  LEND    : 0x4008563d  LCOUNT  : 0x00000027
+
+
+Backtrace:0x400d33dc:0x3ffc57800x400d2d2a:0x3ffc57a0 0x400d27fd:0x3ffc57c0 0x400d2dc3:0x3ffc5800 0x400e62f5:0x3ffc5820
+
+
+
+
+ELF file SHA256: 0000000000000000
+
+Rebooting...
+[␀␘␂␂␂��m␑um����2-hal-cpu.c:214] setCpuFrequencyMhz(): PLL: 480 / 2 = 240 Mhz, APB: 80000000 Hz
+[   456][I][esp32-hal-psram.c:96] psramInit(): PSRAM enabled
+M5EPD initializing...

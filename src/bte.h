@@ -1,3 +1,6 @@
+#ifndef __BTE_H
+#define __BRE_H
+
 #include <Arduino.h>
 
 #define NUMBER_OF_PROBES 6
@@ -9,3 +12,5 @@ static boolean bteConnecting = false;
 static boolean bteConnected = false;
 
 void bteLoop();
+
+#endif //__BRE_H
