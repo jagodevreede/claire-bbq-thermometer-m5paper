@@ -7,6 +7,8 @@
 
 void key_button1_pressed(epdgui_args_vector_t &args) {
   log_i("Button presses");
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
 }
 
 Frame_Home::Frame_Home(void) : Frame_Base() {
@@ -45,6 +47,7 @@ Frame_Home::~Frame_Home(void) {
 
 int Frame_Home::init(epdgui_args_vector_t &args) {
   _is_run = 1;
+  _frame_id = 0;
   M5.EPD.Clear();
   EPDGUI_AddObject(_tp_probe[0]);
   EPDGUI_AddObject(_tp_probe[1]);
@@ -65,7 +68,7 @@ int Frame_Home::run() {
         _tp_probe[i]->SetHide(true);
         _tp_probe[i]->Draw(UPDATE_MODE_GC16);
       } else {
-        log_d("Probe %d updated to %f from %f", i, probeValues[i],
+        log_v("Probe %d updated to %f from %f", i, probeValues[i],
               lastKnownprobeValues[i]);
         _tp_probe[i]->SetHide(false);
         _tp_probe[i]->setLabel(String(probeValues[i], 1));

@@ -11,6 +11,8 @@ Frame_Base::Frame_Base() {
   _time = 0;
   forceStatusBarUpdate();
   StatusBar(UPDATE_MODE_NONE);
+  exitbtn("Back");
+  EPDGUI_AddObject(_key_exit);
 
   EPDGUI_UpdateGlobalLastActiveTime();
 }
@@ -29,8 +31,6 @@ void Frame_Base::StatusBar(m5epd_update_mode_t mode) {
   char buf[20];
   _bar->fillCanvas(0);
   _bar->drawFastHLine(0, 43, 540, 15);
-  _bar->setTextDatum(CL_DATUM);
-  _bar->drawString("Grill 5.0BT", 10, 27);
 
   // Battery
   _bar->setTextDatum(CR_DATUM);
@@ -72,6 +72,16 @@ void Frame_Base::StatusBar(m5epd_update_mode_t mode) {
   _bar->drawString(buf, 270, 27);
   _bar->pushCanvas(0, 0, mode);
 
+  if (GetFrameID() == 0) {
+    _bar->setTextDatum(CL_DATUM);
+    _bar->drawString("Grill 5.0BT", 10, 27);
+  } else {
+    log_i("frameid %d", GetFrameID());
+    if (_key_exit != NULL) {
+      _key_exit->Draw(UPDATE_MODE_DU);
+    }
+  }
+
   // Time
   rtc_time_t time_struct;
   M5.RTC.getTime(&time_struct);
@@ -91,6 +101,9 @@ void Frame_Base::exitbtn(String title, uint16_t width) {
                                        ImageResource_item_icon_arrow_l_32x32);
   *(_key_exit->CanvasPressed()) = *(_key_exit->CanvasNormal());
   _key_exit->CanvasPressed()->ReverseColor();
+
+  _key_exit->AddArgs(EPDGUI_Button::EVENT_RELEASED, 0, (void *)(&_is_run));
+  _key_exit->Bind(EPDGUI_Button::EVENT_RELEASED, &Frame_Base::exit_cb);
 }
 
 int Frame_Base::run(void) {
@@ -101,6 +114,7 @@ int Frame_Base::run(void) {
 void Frame_Base::exit(void) {}
 
 void Frame_Base::exit_cb(epdgui_args_vector_t &args) {
+  log_i("Exit key pressed");
   EPDGUI_PopFrame();
   *((int *)(args[0])) = 0;
 }

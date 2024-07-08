@@ -24,9 +24,8 @@ void SysInit_Start(void) {
 
   _initcanvas.createRender(26, 128);
 
-  // Frame_Main *frame_main = new Frame_Main();
-  // EPDGUI_PushFrame(frame_main);
-
   Frame_Home *frame_home = new Frame_Home();
   EPDGUI_PushFrame(frame_home);
+  Frame_Graph *frame_graph = new Frame_Graph();
+  EPDGUI_AddFrame("Frame_Graph", frame_graph);
 }

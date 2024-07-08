@@ -30,6 +30,9 @@ void loop() {
 
   if (M5.BtnP.isPressed()) {
     shutdown();
+  } else if (M5.BtnL.isPressed()) {
+    log_i("Dropping GUI frame");
+    EPDGUI_PopFrame();
   }
   delay(250);
 }

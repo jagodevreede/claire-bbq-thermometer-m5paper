@@ -58,6 +58,7 @@ void EPDGUI_Clear(void) { epdgui_object_list.clear(); }
 
 void EPDGUI_Run(Frame_Base *frame) {
   if (!inFrameDrawMode) {
+    log_d("No longer in draw mode for frame %s", frame->GetFrameName().c_str());
     last_active_time = 0;
     if (frame->isRun() == 0) {
       frame->exit();
@@ -70,20 +71,20 @@ void EPDGUI_Run(Frame_Base *frame) {
     }
 
     EPDGUI_Draw(UPDATE_MODE_NONE);
-    if ((frame->GetFrameID() == 1) || (frame_switch_count > 3)) {
-      frame_switch_count = 0;
-      M5.EPD.UpdateFull(UPDATE_MODE_GC16);
-    } else {
-      M5.EPD.UpdateFull(UPDATE_MODE_GL16);
-      frame_switch_count++;
-    }
+    // if ((frame->GetFrameID() == 1) || (frame_switch_count > 3)) {
+    //   frame_switch_count = 0;
+    //   M5.EPD.UpdateFull(UPDATE_MODE_GC16);
+    // } else {
+    //   M5.EPD.UpdateFull(UPDATE_MODE_GL16);
+    //   frame_switch_count++;
+    // }
   }
 
   inFrameDrawMode = 1;
   if ((frame->isRun() == 0) || (frame->run() == 0)) {
+    log_d("Exit %s", frame->GetFrameName().c_str());
     frame->exit();
     M5.EPD.Clear(true);
-    log_d("Exit %s", frame->GetFrameName().c_str());
     if (wait_for_delete != NULL) {
       log_d("delete %s", wait_for_delete->GetFrameName().c_str());
       delete wait_for_delete;
@@ -135,6 +136,7 @@ void EPDGUI_MainLoop(void) {
     if (!inFrameDrawMode) {
       EPDGUI_Clear();
       _is_auto_update = true;
+      log_d("Init frame %s", frame->GetFrameName().c_str());
       frame->init(frame_map[frame->GetFrameName()].args);
     }
     EPDGUI_Run(frame);
@@ -168,13 +170,18 @@ Frame_Base *EPDGUI_GetFrame(String name) {
   return NULL;
 }
 
-void EPDGUI_PushFrame(Frame_Base *frame) { frame_stack.push(frame); }
+void EPDGUI_PushFrame(Frame_Base *frame) {
+  frame_stack.push(frame);
+  inFrameDrawMode = 0;
+}
 
 void EPDGUI_PopFrame(bool isDelete) {
-  if (isDelete) {
-    wait_for_delete = frame_stack.top();
+  if (frame_stack.size() > 1) {
+    if (isDelete) {
+      wait_for_delete = frame_stack.top();
+    }
+    frame_stack.pop();
   }
-  frame_stack.pop();
 }
 
 void EPDGUI_OverwriteFrame(Frame_Base *frame) {
