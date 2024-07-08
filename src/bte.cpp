@@ -9,9 +9,12 @@
 
 // globals:
 float probeValues[NUMBER_OF_PROBES] = {};
-float probeHistory[NUMBER_OF_PROBES][HISTORY_LENGTH] = {};
 byte bteState = BT_STATE_NA;
 
+static RingBufCPP<float, HISTORY_LENGTH> probeHistory[NUMBER_OF_PROBES];
+static bool probeHistoryLoaded = 0;
+
+unsigned long lastHistoryUpdate = 0;
 static BLEAddress *pServerAddress;
 BLEClient *mClient;
 
@@ -53,29 +56,46 @@ class MyClientCallback : public BLEClientCallbacks {
   }
 };
 
-unsigned long lastHistoryUpdate = 0;
-
-RingBufCPP<float, 600> buf[NUMBER_OF_PROBES];
-
 void historyKeeperLoop() {
   unsigned long seconds = millis() / 1000;
   if ((lastHistoryUpdate + 10) <= seconds) {
+    log_v("Update history");
     lastHistoryUpdate = seconds;
     for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
-      buf[i].add(probeValues[i]);
+      probeHistory[i].add(probeValues[i], true);
     }
   }
 }
 
+float *getProbeHistory(int probeNumber) {
+  float *result = new float[HISTORY_LENGTH];
+  for (int i = 0; i < HISTORY_LENGTH; i += 1) {
+    float value = *probeHistory[probeNumber].peek(i);
+    result[i] = value;
+  }
+  return result;
+}
+
 // init the ESP32 as a BLE device and set some scan parameters
 void bleInit() {
-  // Rest all probes to not connected
+  // Reset all probes to not connected
   for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
     probeValues[i] = PROBE_NOT_CONNECTED_VALUE;
   }
+  if (!probeHistoryLoaded) {
+    log_i("Pre filling history data");
+    // loadup full history so we always have a sliding window, this makes it
+    // easy to get data later
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
+      for (int j = 0; j < HISTORY_LENGTH; j += 1) {
+        probeHistory[i].add(PROBE_NOT_CONNECTED_VALUE);
+      }
+    }
+    probeHistoryLoaded = true;
+  }
   log_d("Starting ble scan");
   bteState = BT_STATE_SCANNING;
-  BLEDevice::init("ESP 32 Grill BT5.0");
+  BLEDevice::init("ESP32 Grill BT5.0");
   BLEScan *bleScan = BLEDevice::getScan();
   bleScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   bleScan->setActiveScan(true);
@@ -153,23 +173,30 @@ void bteLoop() {
   } else if (bteState == BT_STATE_NA) {
     bleInit();
   }
-  historyKeeperLoop;
+  historyKeeperLoop();
 }
 
 void bteMock() {
-  for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
-    for (int j = 0; j < HISTORY_LENGTH; j += 1) {
-      buf[i].add(j / 4.0);
-    }
-  }
   if (bteState == BT_STATE_NA) {
+    float maxValue = 80.0f * 2;
+    for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
+      for (int j = 0; j < HISTORY_LENGTH; j += 1) {
+        float x = (float)j / HISTORY_LENGTH * 2.0 * PI;
+
+        probeHistory[i].add((sin(x) + 1.0) / 2.0 * maxValue);
+        // probeHistory[i].add((80.0f / HISTORY_LENGTH) * j);
+      }
+    }
     bteState = BT_STATE_CONNECTED;
     for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
-      probeValues[i] = 42.9;
+      probeValues[i] = 12.9;
     }
   }
   for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
-    probeValues[i] += random(1, 10) / 10.0;
+    probeValues[i] += random(1, 10 + (i * 10)) / 10.0;
+    if (probeValues[i] >= 300) {
+      probeValues[i] = 1;
+    }
   }
   historyKeeperLoop();
 }

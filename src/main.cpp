@@ -23,8 +23,8 @@ void shutdown() {
 
 void loop() {
   EPDGUI_MainLoop();
-  // bteLoop();
-  bteMock();
+  bteLoop();
+  // bteMock();
 
   M5.update();
 

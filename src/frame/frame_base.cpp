@@ -76,10 +76,10 @@ void Frame_Base::StatusBar(m5epd_update_mode_t mode) {
     _bar->setTextDatum(CL_DATUM);
     _bar->drawString("Grill 5.0BT", 10, 27);
   } else {
-    log_i("frameid %d", GetFrameID());
-    if (_key_exit != NULL) {
-      _key_exit->Draw(UPDATE_MODE_DU);
-    }
+    // log_i("frameid %d", GetFrameID());
+    // if (_key_exit != NULL) {
+    //   _key_exit->Draw(UPDATE_MODE_DU);
+    // }
   }
 
   // Time

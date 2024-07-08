@@ -181,6 +181,8 @@ void EPDGUI_PopFrame(bool isDelete) {
       wait_for_delete = frame_stack.top();
     }
     frame_stack.pop();
+    inFrameDrawMode = 0;
+    M5.EPD.Clear(true);
   }
 }
 

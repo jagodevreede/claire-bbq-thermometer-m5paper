@@ -5,4 +5,6 @@
 #include "frame_graph.h"
 #include "frame_home.h"
 
+extern int selectedProbe;
+
 #endif

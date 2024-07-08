@@ -1,16 +1,46 @@
-#include "frame_home.h"
-
 #include "../bte.h"
-#include "frame_base.h"
+#include "frame.h"
 
 #define MAX_REDRAWS 200
 
 void key_button1_pressed(epdgui_args_vector_t &args) {
-  log_i("Button presses");
+  selectedProbe = 1;
+  log_i("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 
+void key_button2_pressed(epdgui_args_vector_t &args) {
+  selectedProbe = 2;
+  log_i("Opening probe %d graph", selectedProbe);
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
+}
+
+void key_button3_pressed(epdgui_args_vector_t &args) {
+  selectedProbe = 3;
+  log_i("Opening probe %d graph", selectedProbe);
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
+}
+void key_button4_pressed(epdgui_args_vector_t &args) {
+  selectedProbe = 4;
+  log_i("Opening probe %d graph", selectedProbe);
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
+}
+void key_button5_pressed(epdgui_args_vector_t &args) {
+  selectedProbe = 5;
+  log_i("Opening probe %d graph", selectedProbe);
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
+}
+void key_button0_pressed(epdgui_args_vector_t &args) {
+  selectedProbe = 0;
+  log_i("Opening probe %d graph", selectedProbe);
+  Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
+  EPDGUI_PushFrame(frame);
+}
 Frame_Home::Frame_Home(void) : Frame_Base() {
   _frame_name = "Frame_Home";
   _frame_id = 0;
@@ -27,8 +57,13 @@ Frame_Home::Frame_Home(void) : Frame_Base() {
   // Hide all probes by default
   for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
     _tp_probe[i]->SetHide(true);
-    _tp_probe[i]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button1_pressed);
   }
+  _tp_probe[0]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button0_pressed);
+  _tp_probe[1]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button1_pressed);
+  _tp_probe[2]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button2_pressed);
+  _tp_probe[3]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button3_pressed);
+  _tp_probe[4]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button4_pressed);
+  _tp_probe[5]->Bind(EPDGUI_Button::EVENT_RELEASED, key_button5_pressed);
 }
 
 void Frame_Home::createFontSizes() {
