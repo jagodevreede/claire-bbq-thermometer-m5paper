@@ -4,6 +4,7 @@
 #include "../frame/frame_base.h"
 #include "epdgui_base.h"
 #include "epdgui_button.h"
+#include "epdgui_graph.h"
 #include "epdgui_mutexswitch.h"
 #include "epdgui_switch.h"
 #include "epdgui_temp.h"
