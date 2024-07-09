@@ -1,7 +1,7 @@
 #include "../bte.h"
 #include "frame.h"
 
-#define MAX_REDRAWS 100
+#define MAX_REDRAWS 200
 static int pointsToDraw = 360;  // 1 hour
 
 int Frame_Graph::run() {
@@ -43,6 +43,7 @@ void Frame_Graph::drawGraph() {
     this->canvas->drawString(String(probeValues[selectedProbe], 1), 350, 10);
   }
   this->canvas->setTextSize(26);
+  this->canvas->drawString("1h", 0, 510);
   this->canvas->drawLine(100, 0, 100, 500, 15);
   this->canvas->drawLine(820, 500, 100, 500, 15);
 
