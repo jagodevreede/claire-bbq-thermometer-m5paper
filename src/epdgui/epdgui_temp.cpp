@@ -54,7 +54,7 @@ void EPDGUI_Temp::setLabel(String label) {
 }
 
 void EPDGUI_Temp::UpdateState(int16_t x, int16_t y) {
-   if (_ishide) {
+  if (_ishide) {
     return;
   }
 
@@ -62,7 +62,7 @@ void EPDGUI_Temp::UpdateState(int16_t x, int16_t y) {
 
   if (is_in_area) {
     if (_state == EVENT_NONE) {
-      _state = EVENT_PRESSED;
+      //_state = EVENT_PRESSED;
       Draw();
       if (_pressed_cb != NULL) {
         _pressed_cb(_pressed_cb_args);

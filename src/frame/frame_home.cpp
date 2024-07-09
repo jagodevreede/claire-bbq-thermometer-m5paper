@@ -5,39 +5,39 @@
 
 void key_button1_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 1;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 
 void key_button2_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 2;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 
 void key_button3_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 3;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 void key_button4_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 4;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 void key_button5_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 5;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
 void key_button0_pressed(epdgui_args_vector_t &args) {
   selectedProbe = 0;
-  log_i("Opening probe %d graph", selectedProbe);
+  log_d("Opening probe %d graph", selectedProbe);
   Frame_Base *frame = EPDGUI_GetFrame("Frame_Graph");
   EPDGUI_PushFrame(frame);
 }
@@ -83,6 +83,7 @@ Frame_Home::~Frame_Home(void) {
 int Frame_Home::init(epdgui_args_vector_t &args) {
   _is_run = 1;
   _frame_id = 0;
+  log_d("Init home screen");
   M5.EPD.Clear();
   EPDGUI_AddObject(_tp_probe[0]);
   EPDGUI_AddObject(_tp_probe[1]);
@@ -91,6 +92,9 @@ int Frame_Home::init(epdgui_args_vector_t &args) {
   EPDGUI_AddObject(_tp_probe[4]);
   EPDGUI_AddObject(_tp_probe[5]);
   forceStatusBarUpdate();
+  for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
+    lastKnownprobeValues[i] = PROBE_NOT_CONNECTED_VALUE;
+  }
   return 3;
 }
 
@@ -99,7 +103,7 @@ int Frame_Home::run() {
   for (int i = 0; i < NUMBER_OF_PROBES; i += 1) {
     if (lastKnownprobeValues[i] != probeValues[i]) {
       if (probeValues[i] == PROBE_NOT_CONNECTED_VALUE) {
-        log_i("Probe %d not connected removing from display", i);
+        log_d("Probe %d not connected removing from display", i);
         _tp_probe[i]->SetHide(true);
         _tp_probe[i]->Draw(UPDATE_MODE_GC16);
       } else {

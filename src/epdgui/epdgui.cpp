@@ -54,7 +54,10 @@ void EPDGUI_Process(int16_t x, int16_t y) {
   }
 }
 
-void EPDGUI_Clear(void) { epdgui_object_list.clear(); }
+void EPDGUI_Clear(void) {
+  log_d("Clearing gui objects");
+  epdgui_object_list.clear();
+}
 
 void EPDGUI_Run(Frame_Base *frame) {
   if (!inFrameDrawMode) {
